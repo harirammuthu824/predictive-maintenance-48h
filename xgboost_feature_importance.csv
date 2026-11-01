@@ -1,0 +1,10 @@
+Feature,Importance,Percentage,Rank
+vibration_mm_s,0.89945745,89.95,1
+acoustic_db,0.03146917,3.15,2
+pressure_bar,0.017595647,1.76,3
+Mechanical_Power,0.010203415,1.02,4
+Thermal_Dissipation,0.010029298,1.0,5
+motor_current_a,0.008603515,0.86,6
+temperature_c,0.008301219,0.83,7
+load_pct,0.0072504007,0.73,8
+rpm,0.0070899115,0.71,9
