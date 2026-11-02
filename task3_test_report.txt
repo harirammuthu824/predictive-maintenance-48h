@@ -1,0 +1,122 @@
+================================================================================
+PREDICTIVE MAINTENANCE SYSTEM - TASK 3 VERIFICATION REPORT
+FastAPI REST API & Streamlit Health Monitoring Dashboard
+Generated: 2026-11-02 10:13:06
+================================================================================
+
+1. EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+Overall Task 3 Status : TASK 3 STATUS = PASS
+FastAPI Backend Status: PASS (Uvicorn 127.0.0.1:8000)
+Swagger Documentation : PASS (OpenAPI 3.1.0 Interactive Docs at /docs)
+Streamlit Dashboard   : PASS (Frontend Condition Monitoring at 127.0.0.1:8501)
+End-to-End Prediction : PASS (Streamlit -> FastAPI -> Trained XGBoost/RF Model)
+
+2. SYSTEM PRE-FLIGHT & DEPENDENCIES
+--------------------------------------------------------------------------------
+Python Executable     : C:\Users\acer\Downloads\predictive-maintenance-github-ready\py_embed\python.exe
+Requirements File     : requirements.txt (13 dependencies configured)
+Dependencies Verified : pandas, numpy, scikit-learn, matplotlib, seaborn,
+                        streamlit, joblib, xgboost, fastapi, uvicorn,
+                        pydantic, requests, httpx.
+Dependencies Status   : ALL_INSTALLED
+
+Python Syntax Checks:
+  api.py                  : PASS
+  dashboard.py            : PASS
+  test_api.py             : PASS
+  app.py                  : PASS
+  train_model.py          : PASS
+  feature_engineering.py  : PASS
+  train_anomaly_models.py : PASS
+
+Trained Model Files:
+  XGBoost Classifier     : EXISTS (203.1 KB) (models/xgboost_model.pkl)
+  Random Forest Classifier: EXISTS (1143.4 KB) (models/random_forest_model.pkl)
+
+3. FASTAPI REST API TEST RESULTS
+--------------------------------------------------------------------------------
+Backend Server Launch : PASS (Uvicorn running on http://127.0.0.1:8000)
+GET /                 : PASS [HTTP 200]
+  - Response: {"api_name": "Predictive Maintenance REST API", "version": "1.0.0", "status": "online", "documentation": "/docs", "health_check": "/health", "default_model": "xgboost (Best Performing Task 2 Model, F1: 0.6250, Recall: 83.33%, ROC-AUC: 0.9967)"}
+GET /health           : PASS [HTTP 200]
+  - Response: {"status": "healthy", "uptime_seconds": 6.37, "model_loaded": true, "default_model": "xgboost", "available_models": ["xgboost", "random_forest"], "features_required": ["vibration_mm_s", "temperature_c", "pressure_bar", "motor_current_a", "acoustic_db", "load_pct", "rpm", "Mechanical_Power", "Thermal_Dissipation"], "api_version": "1.0.0"}
+GET /model/info       : PASS [HTTP 200]
+  - Response: {"selected_model": "XGBoost Classifier", "model_file": "C:\\Users\\acer\\Downloads\\predictive-maintenance-github-ready\\models\\xgboost_model.pkl", "task2_test_metrics": {"accuracy": 0.9958, "precision": 0.5, "recall": 0.8333, "f1_score": 0.625, "roc_auc": 0.9967}, "task2_5fold_cv_metrics": {"mean_f1": 0.4372, "mean_roc_auc": 0.9625, "mean_accuracy": 0.9942}, "feature_count": 9, "required_features": ["vibration_mm_s", "temperature_c", "pressure_bar", "motor_current_a", "acoustic_db", "load_pct", "rpm", "Mechanical_Power", "Thermal_Dissipation"], "alternative_model": "Random Forest Classifier (models/random_forest_model.pkl)"}
+POST /predict (Normal): PASS [HTTP 200]
+  - Prediction: Normal (Code 0)
+  - Failure Probability: 0.00%
+  - Risk Level: Low
+POST /predict (Failing): PASS [HTTP 200]
+  - Prediction: Failure/Anomaly Detected (Code 1)
+  - Failure Probability: 94.12%
+  - Risk Level: Critical
+POST /predict (Random Forest): PASS [HTTP 200]
+  - Model Dispatched: Random Forest Classifier
+POST /predict/batch   : PASS [HTTP 200]
+  - Batch Processed: 2 samples (1 anomalies detected)
+Input Validation Check: PASS [HTTP 422 Unprocessable Entity]
+  - Caught Out-of-Bound Sensor Telemetry cleanly.
+
+4. SWAGGER / OPENAPI DOCUMENTATION TEST RESULTS
+--------------------------------------------------------------------------------
+Interactive Swagger UI (GET /docs): PASS [HTTP 200]
+  - Swagger UI bundle served and functional.
+OpenAPI Schema (GET /openapi.json): PASS [HTTP 200]
+  - Title: Predictive Maintenance REST API (Version 1.0.0)
+  - Documented Endpoints: /, /health, /model/info, /predict, /predict/batch
+  - Documented Schemas  : BatchPredictionResponse, BatchTelemetryInput, HTTPValidationError, HealthResponse, PredictionResponse, TelemetryInput, ValidationError
+
+5. STREAMLIT HEALTH MONITORING DASHBOARD TEST RESULTS
+--------------------------------------------------------------------------------
+Dashboard Server Launch : PASS (Streamlit running on http://127.0.0.1:8501)
+Frontend Access Check   : PASS [HTTP 200]
+API Health Probe        : PASS (Sidebar successfully queries /health)
+Telemetry Inputs Form   : PASS (All 7 primary sensor inputs + 2 dynamic features)
+Live Physics Calculator : PASS (P_mech and R_th computed accurately)
+
+6. END-TO-END WORKFLOW INTEGRATION TEST
+--------------------------------------------------------------------------------
+Workflow Architecture:
+  [Streamlit UI Input] 
+         | (HTTP POST JSON)
+         v
+  [FastAPI /predict Endpoint]
+         | (Dynamic Feature Engineering: P_mech & R_th)
+         v
+  [Trained Model: models/xgboost_model.pkl]
+         | (Inference & Calibrated Risk Assessment)
+         v
+  [FastAPI Response JSON]
+         | (HTTP 200 OK)
+         v
+  [Streamlit UI Results Dashboard]
+
+End-to-End Status     : PASS
+Sample Prediction Output:
+  {
+  "prediction": 0,
+  "prediction_label": "Normal",
+  "failure_probability": 0.0,
+  "confidence": 1.0,
+  "risk_level": "Low",
+  "recommendation": "Machinery operating within healthy baseline parameters. Continue standard routine monitoring.",
+  "model_used": "XGBoost Classifier (Task 2 Best Model)",
+  "features_used": {
+    "vibration_mm_s": 2.2,
+    "temperature_c": 64.0,
+    "pressure_bar": 4.8,
+    "motor_current_a": 8.1,
+    "acoustic_db": 65.0,
+    "load_pct": 60.0,
+    "rpm": 1450.0,
+    "Mechanical_Power": 91.1062,
+    "Thermal_Dissipation": 7.9012
+  },
+  "machine_id": "M-01",
+  "timestamp": null
+}
+
+================================================================================
+FINAL VERIFICATION VERDICT: TASK 3 STATUS = PASS
+================================================================================

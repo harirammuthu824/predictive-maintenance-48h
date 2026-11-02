@@ -110,22 +110,86 @@ Both models confirmed that the engineered features actively contribute to predic
 
 ---
 
+### Task 3 — FastAPI REST API & Health Monitoring Dashboard
+
+#### 1. Objective & Architecture
+Productionize the trained predictive-maintenance modeling pipeline by wrapping it in a high-throughput, low-latency asynchronous FastAPI REST API backend, documented with interactive OpenAPI/Swagger schemas, and pairing it with a Streamlit health monitoring dashboard for real-time condition monitoring, failure probability calibration, and operational risk mitigation.
+
+```text
+  [Browser / Plant Operator]
+              │
+              ▼
+  [Streamlit Health Dashboard (dashboard.py :8501)]
+              │
+              ▼ HTTP REST POST /predict (JSON Telemetry)
+  [FastAPI High-Throughput API Gateway (api.py :8000)]
+              │
+              ├─► Dynamic Physical Feature Derivation (P_mech & R_th)
+              │
+              ▼ 9-Feature Ingestion Vector
+  [Task 2 Production Model: models/xgboost_model.pkl]
+              │
+              ├─► Anomaly Classification (0 = Normal, 1 = Anomaly)
+              ├─► Calibrated Failure Probability (%)
+              ├─► Operational Severity (Low, Medium, High, Critical)
+              └─► Automated Engineering Maintenance Guidance
+              │
+              ▼ HTTP 200 OK
+  [Live Telemetry Dashboard Status Display]
+```
+
+#### 2. REST API Endpoints Overview (`api.py`)
+
+| Endpoint | Method | Purpose & Description | Output Schema |
+| :--- | :---: | :--- | :--- |
+| `/` | `GET` | Root service descriptor, version, status, and navigation links. | `{"status": "online", "version": "1.0.0", ...}` |
+| `/health` | `GET` | Live readiness diagnostics, uptime, and loaded model verification. | `HealthResponse` (`status="healthy"`, `available_models=["xgboost", "random_forest"]`) |
+| `/model/info` | `GET` | Architecture specifications, Task 2 test metrics, and required features list. | `ModelInfoResponse` (Accuracy, Precision, Recall, F1, ROC-AUC) |
+| `/predict` | `POST` | Single telemetry reading evaluation with automatic physical feature engineering. | `PredictionResponse` (prediction, label, probability, confidence, risk level, recommendation) |
+| `/predict/batch` | `POST` | High-throughput batch inference for concurrent sensor streams or time windows. | `BatchPredictionResponse` (total samples, anomaly count, anomaly rate, predictions list) |
+| `/docs` | `GET` | Interactive Swagger UI API documentation and testing workbench. | HTML / Swagger Bundle |
+| `/openapi.json` | `GET` | Raw OpenAPI 3.1.0 compliant schema definition. | JSON Schema |
+
+#### 3. Automatic Dynamic Feature Engineering
+If raw sensor inputs are supplied without the Task 2 physical interaction features, `api.py` automatically computes them on-the-fly using exact physical kinematics and thermodynamics formulations:
+- **Mechanical Power**: $P_{\text{mech}} = \left(\frac{\text{load\_pct}}{100}\right) \times \left(\frac{2\pi \times \text{rpm}}{60}\right) = \frac{\text{load\_pct} \times \text{rpm} \times \pi}{3000}$
+- **Thermal Dissipation**: $R_{\text{th}} = \frac{\text{temperature\_c}}{\text{motor\_current\_a}}\quad [^\circ\text{C}/\text{A}]$
+
+#### 4. Streamlit Health Monitoring Dashboard (`dashboard.py`)
+- **Real-Time Telemetry Sliders**: Ingestion controls for all 7 primary sensor channels (`vibration_mm_s`, `temperature_c`, `pressure_bar`, `motor_current_a`, `acoustic_db`, `load_pct`, `rpm`).
+- **Live Physical Interaction Preview**: Real-time display of calculated $P_{\text{mech}}$ and $R_{\text{th}}$ with optional manual override for engineering stress tests.
+- **Model Switcher**: Dynamic runtime selection between XGBoost (Task 2 champion) and Random Forest.
+- **Visual Alert Status**: Instant visual feedback (`Condition: Normal ✅` vs `Condition: FAILURE 🚨`), calibrated failure probability gauge, and operational risk classification (`Low`, `Medium`, `High`, `Critical`).
+- **Quick Preset Telemetry**: 1-click loading of known healthy baseline and failing operating states.
+
+#### 5. Verification & Test Results
+- Full automated test suite verified via `test_api.py` and `verify_task3_e2e.py`.
+- **Pre-flight Syntax**: 100% clean compilation across all modules (`py_compile`).
+- **Dependencies**: All 13 production dependencies verified.
+- **End-to-End Test Status**: **TASK 3 STATUS = PASS** (Documented in `data/task3_test_report.txt`).
+
+---
+
 ## Project Structure
 
 ```text
 predictive-maintenance-system/
-├── app.py                                  # Streamlit monitoring dashboard (Task 1)
-├── train_model.py                          # Baseline ML pipeline & 48h predictor (Task 1)
-├── generate_data.py                        # Synthetic telemetry generator (Task 1)
+├── api.py                                  # FastAPI REST API backend service (Task 3)
+├── app.py                                  # Baseline Streamlit monitoring dashboard (Task 1)
+├── dashboard.py                            # Streamlit Health Monitoring Dashboard (Task 3)
 ├── feature_engineering.py                  # Mechanical & Thermal feature pipeline (Task 2)
+├── generate_data.py                        # Synthetic telemetry generator (Task 1)
+├── run_task2_pipeline.py                   # Master evaluation & plotting pipeline (Task 2)
+├── test_api.py                             # FastAPI automated unit test suite (Task 3)
 ├── train_anomaly_models.py                 # RF & XGBoost classification trainer (Task 2)
-├── run_task2_pipeline.py                   # Master end-to-end evaluation & plotting script (Task 2)
-├── requirements.txt                        # Project dependencies
-├── README.md                               # Project documentation & task reports
-├── .gitignore                              # Git exclusion rules
+├── train_model.py                          # Baseline ML pipeline & 48h predictor (Task 1)
+├── verify_task3_e2e.py                     # Master Task 3 end-to-end verification suite (Task 3)
+├── requirements.txt                        # Production package dependencies
+├── README.md                               # Complete engineering documentation
+├── .gitignore                              # Git exclusion rules (excludes py_embed/, caches)
 ├── .github/
 │   └── workflows/
-│       └── python-check.yml                # CI syntax and execution workflow
+│       └── python-check.yml                # GitHub Actions CI workflow
 ├── data/
 │   ├── sensor_data.csv                     # Raw sensor telemetry (Task 1)
 │   ├── engineered_features.csv             # Augmented feature dataset (Task 2)
@@ -136,7 +200,8 @@ predictive-maintenance-system/
 │   ├── random_forest_feature_importance.csv# RF feature importance rankings
 │   ├── xgboost_feature_importance.csv      # XGBoost feature importance rankings
 │   ├── anomaly_detection_summary.csv       # Anomaly & detection rate statistics
-│   ├── task2_final_report.txt              # Comprehensive 16-section technical report
+│   ├── task2_final_report.txt              # Comprehensive Task 2 technical report
+│   ├── task3_test_report.txt              # End-to-end Task 3 verification report
 │   └── plots/
 │       ├── model_performance_comparison.png
 │       ├── random_forest_confusion_matrix.png
@@ -147,7 +212,7 @@ predictive-maintenance-system/
     ├── model.joblib                        # Task 1 baseline model
     ├── metrics.json                        # Task 1 baseline evaluation metrics
     ├── random_forest_model.pkl             # Task 2 Random Forest classifier
-    └── xgboost_model.pkl                   # Task 2 XGBoost classifier
+    └── xgboost_model.pkl                   # Task 2 XGBoost classifier (Task 3 primary engine)
 ```
 
 ---
@@ -174,9 +239,64 @@ python feature_engineering.py
 # Train Random Forest and XGBoost classifiers
 python train_anomaly_models.py
 
-# Or run the complete evaluation, cross-validation, and plotting suite in one step:
+# Or run the complete evaluation, cross-validation, and plotting suite:
 python run_task2_pipeline.py
 ```
+
+### 4. Task 3 — FastAPI Backend & Streamlit Dashboard
+
+#### A. Start the FastAPI REST API Gateway
+```bash
+uvicorn api:app --host 127.0.0.1 --port 8000 --reload
+```
+- Interactive Swagger UI documentation: `http://127.0.0.1:8000/docs`
+- Alternative ReDoc documentation: `http://127.0.0.1:8000/redoc`
+- System health diagnostic check: `http://127.0.0.1:8000/health`
+
+#### B. Launch the Streamlit Health Monitoring Dashboard
+```bash
+streamlit run dashboard.py
+```
+- Local dashboard interface: `http://localhost:8501`
+
+#### C. Run Automated API & End-to-End Verification
+```bash
+# Run FastAPI unit and integration tests
+python test_api.py
+
+# Run complete multi-tier end-to-end verification
+python verify_task3_e2e.py
+```
+
+---
+
+## Manual GitHub Upload Guide (Browser Drag & Drop)
+
+When uploading this project to GitHub using the **GitHub Web UI (Add file → Upload files)**:
+
+1. **Directories to Upload**:
+   - `.github/` (drag and drop the entire folder)
+   - `data/` (drag and drop the entire folder, includes all CSVs, TXT reports, and `plots/`)
+   - `models/` (drag and drop the entire folder, includes `.pkl` and `.joblib` model binaries)
+
+2. **Root Files to Upload**:
+   - `api.py`
+   - `app.py`
+   - `dashboard.py`
+   - `feature_engineering.py`
+   - `generate_data.py`
+   - `README.md`
+   - `requirements.txt`
+   - `run_task2_pipeline.py`
+   - `test_api.py`
+   - `train_anomaly_models.py`
+   - `train_model.py`
+   - `verify_task3_e2e.py`
+   - `.gitignore`
+
+3. **Important — What to EXCLUDE from Upload**:
+   - **DO NOT UPLOAD `py_embed/`**: This is a local Windows-embedded Python distribution and must never be committed to GitHub (it is already properly ignored in `.gitignore`).
+   - **DO NOT UPLOAD `__pycache__/`** or any temporary `.log` / `.tmp` files.
 
 ---
 
