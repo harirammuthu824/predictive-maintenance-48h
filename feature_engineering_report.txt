@@ -1,0 +1,81 @@
+================================================================================
+FEATURE ENGINEERING REPORT (TASK 2 - STEP 2)
+================================================================================
+Generated for: Predictive Maintenance System for Industrial Rotating Equipment
+Input dataset: data/sensor_data.csv
+Output dataset: data/engineered_features.csv
+
+1. ORIGINAL FEATURES USED:
+--------------------------------------------------------------------------------
+- For Mechanical_Power:
+  * rpm: Rotational speed of the rotating machinery in revolutions per minute (RPM).
+  * load_pct: Operating mechanical load percentage (0 - 100%), directly proportional to shaft torque.
+
+- For Thermal_Dissipation:
+  * temperature_c: Operating temperature of the machinery in degrees Celsius (°C).
+  * motor_current_a: Motor electrical current in Amperes (A), the primary source of internal
+    Joule/ohmic heat generation (I^2 * R losses).
+
+2. FORMULAS AND DERIVATIONS:
+--------------------------------------------------------------------------------
+- Mechanical_Power:
+  * Physical Basis: In rotating machinery, mechanical power delivered by the rotating shaft
+    is the product of torque (tau) and angular velocity (omega):
+      P_mech = tau * omega
+  * Angular velocity conversion:
+      omega = (2 * pi * rpm) / 60  [rad/s]
+  * Shaft torque proxy from load percentage:
+      tau_norm = load_pct / 100  [normalized load fraction]
+  * Exact Formula:
+      Mechanical_Power = (load_pct / 100) * (2 * pi * rpm / 60)
+                       = (load_pct * rpm * pi) / 3000
+  * Summary Statistics:
+      Min:  63.2110
+      Max:  127.5750
+      Mean: 92.9991
+
+- Thermal_Dissipation:
+  * Physical Basis: In industrial rotating electric machinery, internal thermal energy is
+    generated primarily by electrical motor current (ohmic losses I^2 * R) and mechanical friction.
+    Under healthy conditions, the machine's cooling mechanisms (fins, casing airflow, cooling fan)
+    dissipate this heat effectively, maintaining a stable temperature-to-current equilibrium.
+    When heat dissipation degrades (e.g. cooling fins obstructed, bearing overheating, lubrication breakdown),
+    temperature rises disproportionately relative to motor electrical current.
+  * Derived Feature Formula:
+    Because the dataset records operating temperature (temperature_c) without a separate ambient air
+    temperature sensor channel, an exact physical air-to-process gradient (T_process - T_ambient) cannot
+    be computed without inventing arbitrary ambient constants. Therefore, a physically meaningful derived
+    Thermal Dissipation Ratio / Thermal Impedance index is computed using available temperature-related
+    measurements:
+      Thermal_Dissipation = temperature_c / motor_current_a  [°C / A]
+  * Summary Statistics:
+      Min:  6.8147
+      Max:  8.8080
+      Mean: 7.7340
+
+3. DATASET DIMENSIONS AND ROW PROCESSING:
+--------------------------------------------------------------------------------
+- Number of rows before processing: 7200
+- Number of rows after processing: 7200
+- Rows dropped: 0 (100% of rows retained; chronological time-series intact)
+- Missing value handling: Time-series forward-fill followed by backward-fill applied within
+  each machine_id partition to eliminate sporadic sensor dropouts (~0.8% NaN rate) prior to
+  feature derivation, ensuring zero NaN or invalid values in the engineered features.
+- Original columns status: All 11 original columns preserved with original schema and ordering.
+
+4. FINAL FEATURE LIST (13 COLUMNS):
+--------------------------------------------------------------------------------
+ 1. timestamp            (string/datetime: hourly observation timestamp)
+ 2. machine_id           (categorical: machine identifier M-01 to M-08)
+ 3. vibration_mm_s       (float: vibration velocity in mm/s)
+ 4. temperature_c        (float: operating temperature in °C)
+ 5. pressure_bar         (float: operating pressure in bar)
+ 6. motor_current_a      (float: motor current in Amperes)
+ 7. acoustic_db          (float: acoustic noise in decibels)
+ 8. load_pct             (float: operating load percentage)
+ 9. rpm                  (float: rotational speed in RPM)
+10. failure              (binary integer: 0 = normal, 1 = failure event)
+11. failure_mode         (categorical string: failure mode classification at failure event)
+12. Mechanical_Power     (float: engineered mechanical power in W/kW-equivalent units)
+13. Thermal_Dissipation  (float: engineered thermal dissipation ratio in °C/A)
+================================================================================

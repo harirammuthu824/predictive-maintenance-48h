@@ -1,0 +1,15 @@
+Model,Fold,Accuracy,Precision,Recall,F1_Score,ROC_AUC
+Random Forest,Fold_1,0.9958,0.5,0.3333,0.4,0.9951
+XGBoost,Fold_1,0.9965,0.6,0.5,0.5455,0.997
+Random Forest,Fold_2,0.9958,0.5,0.3333,0.4,0.9861
+XGBoost,Fold_2,0.9931,0.25,0.3333,0.2857,0.8316
+Random Forest,Fold_3,0.9924,0.2727,0.5,0.3529,0.994
+XGBoost,Fold_3,0.9944,0.4,0.6667,0.5,0.994
+Random Forest,Fold_4,0.9944,0.3333,0.1429,0.2,0.9949
+XGBoost,Fold_4,0.9944,0.4,0.2857,0.3333,0.9927
+Random Forest,Fold_5,0.9938,0.4286,0.8571,0.5714,0.9965
+XGBoost,Fold_5,0.9924,0.375,0.8571,0.5217,0.9972
+Random Forest,Mean,0.9944,0.4069,0.4333,0.3849,0.9933
+Random Forest,Std,0.0013,0.0908,0.2402,0.1187,0.0037
+XGBoost,Mean,0.9942,0.405,0.5286,0.4372,0.9625
+XGBoost,Std,0.0014,0.1122,0.2121,0.1063,0.0655

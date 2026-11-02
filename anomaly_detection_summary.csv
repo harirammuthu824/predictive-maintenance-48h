@@ -1,0 +1,5 @@
+Subset,Model,Total_Samples,Actual_Normal,Actual_Anomalies,Predicted_Normal,Predicted_Anomalies,True_Positives,False_Positives,True_Negatives,False_Negatives,Detection_Rate_Recall,Precision
+"Full Dataset (7,200)",Random Forest,7200,7168,32,7164,36,29,7,7161,3,0.9062,0.8056
+"Full Dataset (7,200)",XGBoost,7200,7168,32,7164,36,31,5,7163,1,0.9688,0.8611
+"Held-out Test Set (1,440)",Random Forest,1440,1434,6,1431,9,3,6,1428,3,0.5,0.3333
+"Held-out Test Set (1,440)",XGBoost,1440,1434,6,1430,10,5,5,1429,1,0.8333,0.5
